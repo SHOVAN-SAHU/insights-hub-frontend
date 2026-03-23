@@ -6,7 +6,7 @@ import { showToast } from '../components/common/Toast'
 import Toast from '../components/common/Toast'
 import Spinner from '../components/common/Spinner'
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 export default function LoginPage() {
   const dispatch = useDispatch()
@@ -111,9 +111,23 @@ export default function LoginPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 24px var(--accent-glow)',
             }}>
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M11 2L20 7V15L11 20L2 15V7L11 2Z" stroke="white" strokeWidth="1.5" fill="none"/>
-                <circle cx="11" cy="11" r="3" fill="white"/>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+                <rect width="64" height="64" rx="14" fill="#6c63ff" />
+                <path
+                  d="M32 9 L51 20 L51 44 L32 55 L13 44 L13 20 Z"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.3)"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                />
+                <rect x="16" y="20" width="6" height="24" rx="2" fill="white" />
+                <rect x="13" y="20" width="12" height="5" rx="1.5" fill="white" />
+                <rect x="13" y="39" width="12" height="5" rx="1.5" fill="white" />
+                <rect x="30" y="20" width="6" height="24" rx="2" fill="white" />
+                <rect x="30" y="29.5" width="16" height="5" rx="2" fill="white" />
+                <rect x="40" y="20" width="6" height="24" rx="2" fill="white" />
+                <circle cx="51" cy="51" r="5" fill="rgba(255,255,255,0.4)" />
+                <circle cx="51" cy="51" r="2.5" fill="white" />
               </svg>
             </div>
             <span style={{
