@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- FAVICON + APP ICONS -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Fallback PNG for browsers that don't support SVG favicons (Safari < 14) -->
+    <link rel="alternate icon" href="/favicon.png" />
+    <!-- Apple touch icon (iOS home screen) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Web manifest (Android PWA) -->
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#6c63ff" />
+
+    <!-- VIEWPORT + BASIC META -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="InsightsHub" />
+    <meta name="copyright" content="InsightsHub" />
+
+    <!-- PRIMARY SEO -->
+    <title>InsightsHub — AI-Powered Document Q&A Platform</title>
+    <meta name="description"
+          content="InsightsHub lets you upload documents and ask AI questions using RAG (Retrieval-Augmented Generation). Organize into spaces, collaborate with your team, and get instant answers from your files." />
+    <meta name="keywords"
+          content="AI document QA, RAG, document intelligence, ask AI, document search, team collaboration, InsightsHub" />
+    <link rel="canonical" href="https://insightshub.in/" />
+
+    <!-- OPEN GRAPH (Facebook, WhatsApp, LinkedIn, Telegram, Discord, Slack) -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content="https://insightshub.in/" />
+    <meta property="og:site_name"   content="InsightsHub" />
+    <meta property="og:title"       content="InsightsHub — AI-Powered Document Q&A" />
+    <meta property="og:description" content="Upload documents, ask AI questions, get instant answers. Organize in spaces and collaborate with your team." />
+    <meta property="og:image"       content="https://insightshub.in/og-image.png" />
+    <meta property="og:image:width"  content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt"   content="InsightsHub — AI Document Intelligence Platform" />
+    <meta property="og:locale"      content="en_IN" />
+
+    <!--TWITTER CARD (also used by WhatsApp when og: tags are absent) -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:site"        content="@insightshub" />
+    <meta name="twitter:title"       content="InsightsHub — AI-Powered Document Q&A" />
+    <meta name="twitter:description" content="Upload documents, ask AI questions, get instant answers. RAG-powered document intelligence for teams." />
+    <meta name="twitter:image"       content="https://insightshub.in/og-image.png" />
+    <meta name="twitter:image:alt"   content="InsightsHub — AI Document Intelligence Platform" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "InsightsHub",
+      "url": "https://insightshub.in",
+      "logo": "https://insightshub.in/favicon.svg",
+      "description": "AI-powered document Q&A platform using RAG. Upload documents, ask questions, collaborate with your team.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "INR"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "499",
+          "priceCurrency": "INR"
+        },
+        {
+          "@type": "Offer",
+          "name": "Business",
+          "price": "899",
+          "priceCurrency": "INR"
+        }
+      ],
+      "publisher": {
+        "@type": "Organization",
+        "name": "InsightsHub",
+        "url": "https://insightshub.in",
+        "logo": "https://insightshub.in/favicon.svg"
+      }
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
