@@ -407,11 +407,19 @@ export default function LandingPage() {
         flexWrap: 'wrap', gap: 12,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 28, height: 28,
-          }}>  <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 28, height: 28 }} /></div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15 }}>Insights<span style={{ color: 'var(--accent)' }}>Hub</span></span>
+          <div style={{ width: 28, height: 28 }}>
+            <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 28, height: 28 }} />
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15 }}>
+            Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
+          </span>
         </div>
+      
+        <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+          Made with <span style={{ color: 'var(--danger)' }}>♥</span> by{' '}
+          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Shovan</span>
+        </p>
+      
         <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
           © {new Date().getFullYear()} InsightsHub · Your knowledge, amplified by AI.
         </p>

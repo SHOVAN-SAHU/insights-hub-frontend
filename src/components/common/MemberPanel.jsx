@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useState, useEffect, useRef } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { addMember, removeMember, fetchSingleSpace } from '../../features/spaces/spaceSlice'
 import api from '../../services/api'
 import Button from './Button'
@@ -8,21 +8,26 @@ import { showToast } from './Toast'
 
 export default function MemberPanel({ space, spaceId }) {
   const dispatch = useDispatch()
+  const { user: currentUser } = useSelector((s) => s.auth)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
-  const [pendingAdd, setPendingAdd] = useState([])       // full user objects
-  const [pendingRemove, setPendingRemove] = useState([]) // user id strings
+  const [pendingAdd, setPendingAdd] = useState([])
+  const [pendingRemove, setPendingRemove] = useState([])
   const [saving, setSaving] = useState(false)
 
-  // ✅ Use participants (populated from backend)
   const existingParticipants = space?.participants || []
   const existingIds = existingParticipants.map((p) => p.user?._id || p.user)
   const pendingAddIds = pendingAdd.map((u) => u._id)
   const hasPendingChanges = pendingAdd.length > 0 || pendingRemove.length > 0
 
-  // Visible list = existing not pending removal + pending adds
+  // Derive key IDs
+  const currentUserId = currentUser?._id
+  const ownerId = space?.owner?._id || space?.owner  // owner can be populated obj or raw id
+
+  const isOwner = currentUserId === ownerId
+
   const visibleMembers = [
     ...existingParticipants.filter((p) => {
       const uid = p.user?._id || p.user
@@ -31,7 +36,22 @@ export default function MemberPanel({ space, spaceId }) {
     ...pendingAdd.map((u) => ({ user: u, role: 'member', _pending: true })),
   ]
 
-  // ── Search ────────────────────────────────────────────────
+  // ── Debounced search — fires 400ms after user stops typing ─
+  const debounceRef = useRef(null)
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      return
+    }
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      handleSearch()
+    }, 400)
+    return () => clearTimeout(debounceRef.current)
+  }, [searchQuery])
+
+  // ── Search ──────────────────────────────────────────────
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
@@ -45,7 +65,7 @@ export default function MemberPanel({ space, spaceId }) {
     }
   }
 
-  // ── Stage add ─────────────────────────────────────────────
+  // ── Stage add ───────────────────────────────────────────
   const stageAdd = (user) => {
     if (existingIds.includes(user._id) || pendingAddIds.includes(user._id)) {
       showToast('User already in this space', 'info')
@@ -58,7 +78,7 @@ export default function MemberPanel({ space, spaceId }) {
     showToast(`${user.name} staged for adding`, 'info')
   }
 
-  // ── Stage remove ──────────────────────────────────────────
+  // ── Stage remove ────────────────────────────────────────
   const stageRemove = (userId) => {
     if (pendingAddIds.includes(userId)) {
       setPendingAdd((prev) => prev.filter((u) => u._id !== userId))
@@ -71,7 +91,7 @@ export default function MemberPanel({ space, spaceId }) {
     setPendingRemove((prev) => prev.filter((id) => id !== userId))
   }
 
-  // ── Save all ──────────────────────────────────────────────
+  // ── Save all ────────────────────────────────────────────
   const handleSave = async () => {
     setSaving(true)
     let success = true
@@ -99,7 +119,6 @@ export default function MemberPanel({ space, spaceId }) {
     }
 
     if (success) {
-      // Re-fetch the space so participants are populated fresh
       await dispatch(fetchSingleSpace(space._id))
       showToast('Members updated!', 'success')
       setPendingAdd([])
@@ -115,59 +134,120 @@ export default function MemberPanel({ space, spaceId }) {
     showToast('Changes discarded', 'info')
   }
 
+  // ── Render remove button logic ──────────────────────────
+  // Rules:
+  //   - Owner can remove anyone EXCEPT themselves
+  //   - Non-owner can ONLY remove themselves (leave space)
+  //   - Owner row never shows a remove button
+  const getRemoveButton = (m, uid, isPendingRemove) => {
+    const isSelf = uid === currentUserId
+    const isOwnerRow = m.role === 'owner' || uid === ownerId
+    const isPendingAddRow = m._pending === true
+
+    // Owner row: never show remove button (owner can't be removed)
+    if (isOwnerRow) return null
+
+    // If current user is owner → can remove anyone except owner row (already handled above)
+    // If current user is NOT owner → can only remove self (leave button)
+    const canRemove = isOwner || isSelf
+
+    if (!canRemove) return null
+
+    if (isPendingRemove) {
+      return (
+        <button
+          onClick={() => unstageRemove(uid)}
+          style={{
+            background: 'var(--danger-dim)', border: '1px solid rgba(255,84,112,0.25)',
+            color: 'var(--danger)', cursor: 'pointer', fontSize: 11, fontWeight: 600,
+            padding: '4px 10px', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)',
+          }}
+        >
+          Undo
+        </button>
+      )
+    }
+
+    return (
+      <button
+        onClick={() => stageRemove(uid)}
+        title={isSelf && !isOwner ? 'Leave space' : 'Remove member'}
+        style={{
+          background: 'none', border: 'none', color: 'var(--text-muted)',
+          cursor: 'pointer', fontSize: 15, padding: '2px 6px',
+          transition: 'color var(--transition)',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--danger)'}
+        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+      >
+        {isSelf && !isOwner ? '← Leave' : '✕'}
+      </button>
+    )
+  }
+
   return (
     <div>
-      {/* Search */}
-      <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
-        Add Members
-      </p>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="Search by name or email..."
-          style={{
-            flex: 1, background: 'var(--bg-secondary)',
-            border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
-            padding: '9px 13px', color: 'var(--text-primary)',
-            fontSize: 13, outline: 'none', fontFamily: 'var(--font-body)',
-            transition: 'border-color var(--transition)',
-          }}
-          onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
-          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
-        />
-        <Button onClick={handleSearch} loading={searching} size="sm">Search</Button>
-      </div>
-
-      {/* Search Results */}
-      {searchResults.length > 0 && (
-        <div style={{
-          background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)', marginBottom: 20, overflow: 'hidden',
-        }}>
-          {searchResults.map((u) => {
-            const alreadyIn = existingIds.includes(u._id) || pendingAddIds.includes(u._id)
-            return (
-              <div key={u._id} style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 14px', borderBottom: '1px solid var(--border)',
-                opacity: alreadyIn ? 0.5 : 1,
+      {/* Search — only visible to owner */}
+      {isOwner && (
+        <>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+            Add Members
+          </p>
+          <div style={{ position: 'relative', marginBottom: 12 }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or email..."
+              style={{
+                width: '100%', background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+                padding: '9px 36px 9px 13px', color: 'var(--text-primary)',
+                fontSize: 13, outline: 'none', fontFamily: 'var(--font-body)',
+                transition: 'border-color var(--transition)',
+                boxSizing: 'border-box',
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+            />
+            {searching && (
+              <div style={{
+                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
               }}>
-                <Avatar user={u} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{u.email}</p>
-                </div>
-                <Button size="sm" variant={alreadyIn ? 'secondary' : 'success'}
-                  onClick={() => !alreadyIn && stageAdd(u)} disabled={alreadyIn}>
-                  {alreadyIn ? 'Added' : '+ Stage'}
-                </Button>
+                <Spinner size={14} />
               </div>
-            )
-          })}
-        </div>
+            )}
+          </div>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div style={{
+              background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-md)', marginBottom: 20, overflow: 'hidden',
+            }}>
+              {searchResults.map((u) => {
+                const alreadyIn = existingIds.includes(u._id) || pendingAddIds.includes(u._id)
+                return (
+                  <div key={u._id} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 14px', borderBottom: '1px solid var(--border)',
+                    opacity: alreadyIn ? 0.5 : 1,
+                  }}>
+                    <Avatar user={u} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{u.email}</p>
+                    </div>
+                    <Button size="sm" variant={alreadyIn ? 'secondary' : 'success'}
+                      onClick={() => !alreadyIn && stageAdd(u)} disabled={alreadyIn}>
+                      {alreadyIn ? 'Added' : '+ Stage'}
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* Pending Changes Banner */}
@@ -203,10 +283,12 @@ export default function MemberPanel({ space, spaceId }) {
             No members yet.
           </p>
         ) : visibleMembers.map((m) => {
-          const user = m.user   // always a populated object now
+          const user = m.user
           const uid = user?._id
           const isPendingAdd = m._pending === true
           const isPendingRemove = pendingRemove.includes(uid)
+          const isSelf = uid === currentUserId
+          const isOwnerRow = m.role === 'owner' || uid === ownerId
 
           return (
             <div key={uid} style={{
@@ -228,42 +310,42 @@ export default function MemberPanel({ space, spaceId }) {
             }}>
               <Avatar user={user} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{
-                  fontSize: 13, fontWeight: 500,
-                  textDecoration: isPendingRemove ? 'line-through' : 'none',
-                  color: isPendingRemove ? 'var(--text-muted)' : 'var(--text-primary)',
-                }}>
-                  {user?.name}
-                </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{m.role || 'member'}</p>
+                  <p style={{
+                    fontSize: 13, fontWeight: 500,
+                    textDecoration: isPendingRemove ? 'line-through' : 'none',
+                    color: isPendingRemove ? 'var(--text-muted)' : 'var(--text-primary)',
+                  }}>
+                    {user?.name}
+                  </p>
+                  {/* "You" badge */}
+                  {isSelf && (
+                    <span style={{
+                      fontSize: 10, fontWeight: 700,
+                      background: 'var(--accent-dim)', color: 'var(--accent)',
+                      border: '1px solid rgba(108,99,255,0.25)',
+                      padding: '1px 6px', borderRadius: 10,
+                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                    }}>
+                      You
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    {isOwnerRow ? 'owner' : m.role || 'member'}
+                  </p>
                   {isPendingAdd && <Badge color="success" label="+ pending" />}
-                  {isPendingRemove && <Badge color="danger" label="− removing" />}
+                  {isPendingRemove && (
+                    <Badge
+                      color="danger"
+                      label={isSelf && !isOwner ? '− leaving' : '− removing'}
+                    />
+                  )}
                 </div>
               </div>
 
-              {m.role !== 'owner' && (
-                isPendingRemove ? (
-                  <button onClick={() => unstageRemove(uid)} style={{
-                    background: 'var(--danger-dim)', border: '1px solid rgba(255,84,112,0.25)',
-                    color: 'var(--danger)', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                    padding: '4px 10px', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)',
-                  }}>
-                    Undo
-                  </button>
-                ) : (
-                  <button onClick={() => stageRemove(uid)} style={{
-                    background: 'none', border: 'none', color: 'var(--text-muted)',
-                    cursor: 'pointer', fontSize: 15, padding: '2px 6px',
-                    transition: 'color var(--transition)',
-                  }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--danger)'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                  >
-                    ✕
-                  </button>
-                )
-              )}
+              {getRemoveButton(m, uid, isPendingRemove)}
             </div>
           )
         })}

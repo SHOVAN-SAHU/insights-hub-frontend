@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { uploadDocument, deleteDocument } from '../../features/documents/documentSlice'
-import Button from '../common/Button'
 import Spinner from '../common/Spinner'
 import { showToast } from '../common/Toast'
 
@@ -11,10 +10,61 @@ function formatBytes(bytes = 0) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yy = String(d.getFullYear())
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${dd}-${mm}-${yy} · ${hh}:${min}`
+}
+
+function StatusBadge({ status }) {
+  const map = {
+    processing: { color: 'var(--warning)',  bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.25)',  label: 'Processing' },
+    ready:      { color: 'var(--success)',  bg: 'var(--success-dim)',    border: 'rgba(34,211,165,0.25)',  label: 'Ready' },
+    failed:     { color: 'var(--danger)',   bg: 'var(--danger-dim)',     border: 'rgba(255,84,112,0.25)',  label: 'Failed' },
+  }
+  const s = map[status?.toLowerCase()] || map.ready
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 700,
+      color: s.color, background: s.bg,
+      border: `1px solid ${s.border}`,
+      padding: '1px 7px', borderRadius: 10,
+      textTransform: 'uppercase', letterSpacing: '0.05em',
+    }}>
+      {s.label}
+    </span>
+  )
+}
+
 function FileIcon({ name }) {
   const ext = name?.split('.').pop()?.toLowerCase()
-  const map = { pdf: '📕', doc: '📘', docx: '📘', txt: '📝', csv: '📊', xlsx: '📊', png: '🖼️', jpg: '🖼️' }
-  return <span style={{ fontSize: 20 }}>{map[ext] || '📄'}</span>
+  const map = {
+    pdf:  { icon: '📕', color: '#ff5470' },
+    doc:  { icon: '📘', color: '#3b82f6' },
+    docx: { icon: '📘', color: '#3b82f6' },
+    txt:  { icon: '📝', color: '#9090b0' },
+    csv:  { icon: '📊', color: '#22d3a5' },
+    xlsx: { icon: '📊', color: '#22d3a5' },
+    png:  { icon: '🖼️', color: '#f59e0b' },
+    jpg:  { icon: '🖼️', color: '#f59e0b' },
+  }
+  const f = map[ext] || { icon: '📄', color: '#9090b0' }
+  return (
+    <div style={{
+      width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+      background: `${f.color}18`,
+      border: `1.5px solid ${f.color}40`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 18,
+    }}>
+      {f.icon}
+    </div>
+  )
 }
 
 export default function DocumentPanel({ spaceId }) {
@@ -63,10 +113,10 @@ export default function DocumentPanel({ spaceId }) {
           cursor: 'pointer',
           background: dragging ? 'var(--accent-dim)' : 'var(--bg-secondary)',
           transition: 'all var(--transition)',
-          marginBottom: 20,
+          marginBottom: 24,
         }}
       >
-        <input ref={fileRef} type="file" multiple hidden onChange={(e) => handleUpload(e.target.files)} />
+        <input ref={fileRef} type="file" hidden onChange={(e) => handleUpload(e.target.files)} />
         {uploading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
             <Spinner size={28} />
@@ -103,33 +153,60 @@ export default function DocumentPanel({ spaceId }) {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <p style={{
+            fontSize: 12, color: 'var(--text-muted)',
+            marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em',
+          }}>
             {documents.length} document{documents.length !== 1 ? 's' : ''}
           </p>
           {documents.map((doc) => (
-            <div key={doc._id} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px 14px',
-              transition: 'border-color var(--transition)',
-            }}
+            <div
+              key={doc._id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '12px 14px',
+                transition: 'border-color var(--transition)',
+              }}
               onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--border-light)'}
               onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
             >
-              <FileIcon name={doc.name || doc.filename} />
+              <FileIcon name={doc.filename || doc.name} />
+
               <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Filename */}
                 <p style={{
                   fontSize: 13, fontWeight: 500,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  marginBottom: 4,
                 }}>
-                  {doc.name || doc.filename || 'Untitled'}
+                  {doc.filename || doc.name || 'Untitled'}
                 </p>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                  {formatBytes(doc.size)} · {doc.status || 'Ready'}
-                </p>
+
+                {/* Meta row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  {/* File size */}
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    {formatBytes(doc.fileSize ?? doc.size ?? 0)}
+                  </span>
+
+                  <span style={{ fontSize: 11, color: 'var(--border-light)' }}>·</span>
+
+                  {/* Upload date */}
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    {formatDate(doc.createdAt)}
+                  </span>
+
+                  <span style={{ fontSize: 11, color: 'var(--border-light)' }}>·</span>
+
+                  {/* Status badge */}
+                  <StatusBadge status={doc.status} />
+                </div>
               </div>
+
+              {/* Delete button */}
               <button
                 onClick={() => handleDelete(doc._id)}
                 disabled={deletingId === doc._id}
@@ -138,12 +215,14 @@ export default function DocumentPanel({ spaceId }) {
                   color: 'var(--text-muted)', cursor: 'pointer',
                   padding: '4px 8px', borderRadius: 4,
                   fontSize: 16, transition: 'color var(--transition)',
-                  display: 'flex', alignItems: 'center',
+                  display: 'flex', alignItems: 'center', flexShrink: 0,
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.color = 'var(--danger)'}
                 onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
               >
-                {deletingId === doc._id ? <Spinner size={14} color="var(--danger)" /> : '🗑'}
+                {deletingId === doc._id
+                  ? <Spinner size={14} color="var(--danger)" />
+                  : '🗑'}
               </button>
             </div>
           ))}

@@ -21,6 +21,7 @@ export default function SpaceDetailPage() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { spaces, loading: spacesLoading } = useSelector((s) => s.spaces)
+  const { user: currentUser } = useSelector((s) => s.auth)
 
   const [activeTab, setActiveTab] = useState('Documents')
   const [showEdit, setShowEdit] = useState(false)
@@ -30,7 +31,10 @@ export default function SpaceDetailPage() {
 
   const space = spaces.find((s) => s._id === spaceId)
 
-  // participants count from the populated array
+  // Derive owner check
+  const ownerId = space?.owner?._id || space?.owner
+  const isOwner = currentUser?._id === ownerId
+
   const participantCount = space?.participants?.length ?? 0
 
   useEffect(() => {
@@ -133,19 +137,20 @@ export default function SpaceDetailPage() {
                 <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{space.description}</p>
               )}
               <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-                {/* type badge */}
                 <Chip
                   label={space.type === 'team' ? '👥 Team' : '👤 Personal'}
                   color={space.type === 'team' ? 'accent' : 'success'}
                 />
-                {/* participant count */}
                 <Chip label={`${participantCount} member${participantCount !== 1 ? 's' : ''}`} />
               </div>
             </div>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => setShowEdit(true)}>
-            ⚙ Settings
-          </Button>
+          {/* Settings button only visible to owner */}
+          {isOwner && (
+            <Button variant="secondary" size="sm" onClick={() => setShowEdit(true)}>
+              ⚙ Settings
+            </Button>
+          )}
         </div>
 
         {/* Tabs */}
@@ -185,53 +190,74 @@ export default function SpaceDetailPage() {
           {activeTab === 'Ask AI' && <AskPanel spaceId={spaceId} />}
           {activeTab === 'Members' && <MemberPanel space={space} spaceId={spaceId} />}
           {activeTab === 'Settings' && (
-            <div style={{ maxWidth: 480 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Space Settings</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <Input
-                  label="Space Name"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  placeholder="Space name"
-                />
-                <Input
-                  label="Description"
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  placeholder="Describe this space..."
-                  multiline rows={3}
-                />
-                <div>
-                  <Button onClick={handleSaveSettings} loading={saving} disabled={!editName.trim()}>
-                    Save Changes
-                  </Button>
+            isOwner ? (
+              <div style={{ maxWidth: 480 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>Space Settings</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>
+                  Only the space owner can edit these settings.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <Input
+                    label="Space Name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Space name"
+                  />
+                  <Input
+                    label="Description"
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    placeholder="Describe this space..."
+                    multiline rows={3}
+                  />
+                  <div>
+                    <Button onClick={handleSaveSettings} loading={saving} disabled={!editName.trim()}>
+                      Save Changes
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div style={{
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                minHeight: 280, textAlign: 'center', gap: 12,
+              }}>
+                <span style={{ fontSize: 40 }}>🔒</span>
+                <h3 style={{ fontSize: 17, fontWeight: 700, fontFamily: 'var(--font-display)' }}>
+                  Owner only
+                </h3>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 300 }}>
+                  Only the space owner can change the name and description.
+                </p>
+              </div>
+            )
           )}
         </div>
       </div>
 
-      {/* Quick Settings Modal */}
-      <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Space">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Input label="Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
-          <Input label="Description" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} multiline rows={3} />
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <Button variant="secondary" onClick={() => setShowEdit(false)}>Cancel</Button>
-            <Button onClick={async () => { await handleSaveSettings(); setShowEdit(false) }} loading={saving}>
-              Save
-            </Button>
+      {/* Quick Settings Modal — owner only */}
+      {isOwner && (
+        <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Space">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Input label="Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            <Input label="Description" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} multiline rows={3} />
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => setShowEdit(false)}>Cancel</Button>
+              <Button onClick={async () => { await handleSaveSettings(); setShowEdit(false) }} loading={saving}>
+                Save
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
     </PageLayout>
   )
 }
 
 function Chip({ label, color }) {
   const colorMap = {
-    accent: { bg: 'var(--accent-dim)', text: 'var(--accent)', border: 'rgba(108,99,255,0.25)' },
+    accent:  { bg: 'var(--accent-dim)',  text: 'var(--accent)',  border: 'rgba(108,99,255,0.25)' },
     success: { bg: 'var(--success-dim)', text: 'var(--success)', border: 'rgba(34,211,165,0.25)' },
     default: { bg: 'var(--bg-secondary)', text: 'var(--text-muted)', border: 'var(--border)' },
   }
