@@ -23,7 +23,7 @@ export default function Navbar() {
   return (
     <nav
       style={{
-        background: "var(--bg-secondary)",
+        background: "rgba(17,17,24,0.8)",
         borderBottom: "1px solid var(--border)",
         padding: "0 32px",
         height: 60,
