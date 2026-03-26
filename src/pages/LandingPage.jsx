@@ -133,20 +133,23 @@ export default function LandingPage() {
         </p>
 
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
-            style={{
-              padding: '14px 32px', borderRadius: 'var(--radius-md)',
-              background: 'var(--accent)', border: 'none',
-              color: '#fff', fontSize: 16, fontWeight: 700,
-              boxShadow: '0 0 40px rgba(108,99,255,0.35)', transition: 'var(--transition)',
-              cursor: 'pointer', letterSpacing: '-0.01em',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(0)' }}
-          >
-            {isAuthenticated ? 'Go to Dashboard' : 'Get Started — It\'s Free'}
-          </button>
+          {!isAuthenticated && (
+            <button
+              onClick={() => navigate('/login')}
+              style={{
+                padding: '14px 32px', borderRadius: 'var(--radius-md)',
+                background: 'var(--accent)', border: 'none',
+                color: '#fff', fontSize: 16, fontWeight: 700,
+                boxShadow: '0 0 40px rgba(108,99,255,0.35)', transition: 'var(--transition)',
+                cursor: 'pointer', letterSpacing: '-0.01em',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; e.currentTarget.style.transform = 'translateY(-2px)        ' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              Get Started — It's Free
+            </button>
+          )}
+        
           <button
             onClick={() => navigate('/dashboard')}
             style={{

@@ -20,7 +20,10 @@ export const loadUser = createAsyncThunk(
       const res = await api.get('/users/me')
       return res.data
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Session expired')
+      const status = err.response?.status
+      // Only treat 401 as a real logout signal
+      // Any other error (500, network timeout, etc.) should NOT wipe the session
+      return rejectWithValue({ message: err.response?.data?.message || 'Session expired', status })
     }
   }
 )
@@ -71,6 +74,7 @@ const authSlice = createSlice({
         state.loading = false
         state.error = action.payload
       })
+
       // loadUser
       .addCase(loadUser.pending, (state) => {
         state.loading = true
@@ -80,11 +84,19 @@ const authSlice = createSlice({
         state.user = action.payload.user || action.payload
         state.isAuthenticated = true
       })
-      .addCase(loadUser.rejected, (state) => {
+      .addCase(loadUser.rejected, (state, action) => {
         state.loading = false
-        state.user = null
-        state.isAuthenticated = false
+        // ✅ Only clear session on 401 (truly unauthenticated)
+        // 4xx other than 401, 5xx, or network errors → keep existing session
+        // so free plan users (or any user) don't get logged out on a flaky request
+        if (action.payload?.status === 401) {
+          state.user = null
+          state.isAuthenticated = false
+        }
+        // For all other failures, do NOT touch user/isAuthenticated
+        // The persisted auth state from redux-persist keeps them logged in
       })
+
       // logoutUser
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null

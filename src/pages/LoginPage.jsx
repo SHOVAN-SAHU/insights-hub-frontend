@@ -163,7 +163,7 @@ export default function LoginPage() {
           }}>
             {[
               { icon: '📄', text: 'Upload and manage documents' },
-              { icon: '🤖', text: 'Ask questions with AI (RAG)' },
+              { icon: '🧠', text: 'Ask questions with AI (RAG)' },
               { icon: '👥', text: 'Collaborate in shared spaces' },
             ].map((f, i) => (
               <div key={i} style={{
