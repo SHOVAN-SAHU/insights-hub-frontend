@@ -24,21 +24,14 @@ export default function LoginPage() {
         cancel_on_tap_outside: true,
       })
       window.google.accounts.id.renderButton(buttonRef.current, {
-        theme: 'filled_black',
-        size: 'large',
-        shape: 'rectangular',
-        text: 'continue_with',
-        width: 300,
+        theme: 'filled_black', size: 'large', shape: 'rectangular',
+        text: 'continue_with', width: 300,
       })
       window.google.accounts.id.prompt()
     }
-
-    if (window.google) {
-      initGoogle()
-    } else {
-      const interval = setInterval(() => {
-        if (window.google) { clearInterval(interval); initGoogle() }
-      }, 200)
+    if (window.google) { initGoogle() }
+    else {
+      const interval = setInterval(() => { if (window.google) { clearInterval(interval); initGoogle() } }, 200)
       return () => clearInterval(interval)
     }
   }, [])
@@ -55,131 +48,67 @@ export default function LoginPage() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg-primary)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden',
+      minHeight: '100vh', background: 'var(--bg-primary)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'relative', overflow: 'hidden', padding: '20px 16px',
+      boxSizing: 'border-box',
     }}>
-      {/* Background glow effects */}
-      <div style={{
-        position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
-        width: 600, height: 600,
-        background: 'radial-gradient(circle, rgba(108,99,255,0.08) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: '10%', right: '10%',
-        width: 300, height: 300,
-        background: 'radial-gradient(circle, rgba(34,211,165,0.05) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+      {/* Background glows */}
+      <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: '80vw', maxWidth: 600, height: 600, background: 'radial-gradient(circle, rgba(108,99,255,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: 300, height: 300, background: 'radial-gradient(circle, rgba(34,211,165,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)`, backgroundSize: '40px 40px', opacity: 0.3, pointerEvents: 'none' }} />
 
-      {/* Grid pattern */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: `linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)`,
-        backgroundSize: '40px 40px',
-        opacity: 0.3,
-        pointerEvents: 'none',
-      }} />
-
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: 440,
-        padding: '0 20px',
-        animation: 'fadeIn 0.5s ease',
-      }}>
-        {/* Card */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: 440, animation: 'fadeIn 0.5s ease' }}>
         <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
+          background: 'var(--bg-card)', border: '1px solid var(--border)',
           borderRadius: 'var(--radius-xl)',
-          padding: '48px 40px',
+          padding: 'clamp(28px, 6vw, 48px) clamp(20px, 6vw, 40px)',
           boxShadow: 'var(--shadow-lg), var(--shadow-accent)',
           textAlign: 'center',
         }}>
           {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 32 }}>
-            <div style={{
-              width: 44, height: 44,
-              background: 'var(--accent)',
-              borderRadius: 12,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 24px var(--accent-glow)',
-            }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-                <rect width="64" height="64" rx="14" fill="#6c63ff" />
-                <path
-                  d="M32 9 L51 20 L51 44 L32 55 L13 44 L13 20 Z"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.3)"
-                  stroke-width="2"
-                  stroke-linejoin="round"
-                />
-                <rect x="16" y="20" width="6" height="24" rx="2" fill="white" />
-                <rect x="13" y="20" width="12" height="5" rx="1.5" fill="white" />
-                <rect x="13" y="39" width="12" height="5" rx="1.5" fill="white" />
-                <rect x="30" y="20" width="6" height="24" rx="2" fill="white" />
-                <rect x="30" y="29.5" width="16" height="5" rx="2" fill="white" />
-                <rect x="40" y="20" width="6" height="24" rx="2" fill="white" />
-                <circle cx="51" cy="51" r="5" fill="rgba(255,255,255,0.4)" />
-                <circle cx="51" cy="51" r="2.5" fill="white" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 28 }}>
+            <div style={{ width: 44, height: 44, background: 'var(--accent)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px var(--accent-glow)', flexShrink: 0 }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="28" height="28">
+                <rect width="64" height="64" rx="14" fill="#6c63ff"/>
+                <path d="M32 9 L51 20 L51 44 L32 55 L13 44 L13 20 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinejoin="round"/>
+                <rect x="16" y="20" width="6" height="24" rx="2" fill="white"/>
+                <rect x="13" y="20" width="12" height="5" rx="1.5" fill="white"/>
+                <rect x="13" y="39" width="12" height="5" rx="1.5" fill="white"/>
+                <rect x="30" y="20" width="6" height="24" rx="2" fill="white"/>
+                <rect x="30" y="29.5" width="16" height="5" rx="2" fill="white"/>
+                <rect x="40" y="20" width="6" height="24" rx="2" fill="white"/>
+                <circle cx="51" cy="51" r="5" fill="rgba(255,255,255,0.4)"/>
+                <circle cx="51" cy="51" r="2.5" fill="white"/>
               </svg>
             </div>
-            <span style={{
-              fontFamily: 'var(--font-display)',
-              fontWeight: 800,
-              fontSize: 24,
-              letterSpacing: '-0.04em',
-            }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, letterSpacing: '-0.04em' }}>
               Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
             </span>
           </div>
 
-          <h1 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 28,
-            fontWeight: 700,
-            marginBottom: 10,
-            letterSpacing: '-0.03em',
-          }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 700, marginBottom: 10, letterSpacing: '-0.03em' }}>
             Welcome back
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 36, lineHeight: 1.5 }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28, lineHeight: 1.5 }}>
             AI-powered document intelligence.<br />Ask anything, get instant answers.
           </p>
 
-          {/* Features list */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-            marginBottom: 36,
-            textAlign: 'left',
-          }}>
+          {/* Features */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 28, textAlign: 'left' }}>
             {[
               { icon: '📄', text: 'Upload and manage documents' },
               { icon: '🧠', text: 'Ask questions with AI (RAG)' },
               { icon: '👥', text: 'Collaborate in shared spaces' },
             ].map((f, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 14px',
-                background: 'var(--bg-secondary)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-              }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                 <span style={{ fontSize: 16 }}>{f.icon}</span>
                 <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{f.text}</span>
               </div>
             ))}
           </div>
 
-          {/* Google Sign In Button */}
+          {/* Google Sign In */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
             {loading ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)', fontSize: 14 }}>
@@ -189,25 +118,18 @@ export default function LoginPage() {
               <div ref={buttonRef} style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden' }} />
             )}
             {error && (
-              <p style={{
-                fontSize: 13, color: 'var(--danger)',
-                background: 'var(--danger-dim)',
-                border: '1px solid rgba(255,84,112,0.2)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '8px 14px',
-              }}>
+              <p style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-dim)', border: '1px solid rgba(255,84,112,0.2)', borderRadius: 'var(--radius-sm)', padding: '8px 14px', width: '100%', boxSizing: 'border-box' }}>
                 {error}
               </p>
             )}
           </div>
 
-          <p style={{ marginTop: 28, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <p style={{ marginTop: 24, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
             By continuing, you agree to our Terms of Service and Privacy Policy.
           </p>
         </div>
 
-        {/* Footer note */}
-        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--text-muted)' }}>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-muted)' }}>
           Secure authentication powered by Google
         </p>
       </div>

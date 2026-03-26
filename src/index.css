@@ -119,3 +119,22 @@ input, textarea, select {
 .page-enter {
   animation: fadeIn 0.35s ease forwards;
 }
+
+@media (max-width: 640px) {
+  .landing-desktop-nav { display: none !important; }
+  .landing-mobile-btn { display: flex !important; }
+  .floating-stat { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  footer {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .desktop-nav { display: none !important; }
+  .mobile-menu-btn { display: flex !important; }
+}

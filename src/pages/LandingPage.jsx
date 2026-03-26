@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { logoutUser } from '../features/auth/authSlice'
@@ -29,29 +30,49 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { isAuthenticated } = useSelector((s) => s.auth)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
 
   const handleLogout = async () => {
+    setMenuOpen(false)
     await dispatch(logoutUser())
     navigate('/')
   }
 
+  // Close menu on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', overflowX: 'hidden' }}>
 
       {/* ── NAV ── */}
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '20px 48px', borderBottom: '1px solid var(--border)',
-        position: 'sticky', top: 0, zIndex: 100,
+        padding: '0 20px', height: 60,
+        borderBottom: '1px solid var(--border)',
+        position: 'sticky', top: 0, zIndex: 200,
         background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(12px)',
       }}>
+        {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 34, height: 34,
-          }}>  <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 34, height: 34 }} /></div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18 }}>Insights<span style={{ color: 'var(--accent)' }}>Hub</span></span>
+          <div style={{ width: 34, height: 34, flexShrink: 0 }}>
+            <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 34, height: 34 }} />
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18 }}>
+            Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
+          </span>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
+
+        {/* Desktop buttons */}
+        <div className="landing-desktop-nav" style={{ display: 'flex', gap: 12 }}>
           {isAuthenticated ? (
             <button
               onClick={handleLogout}
@@ -96,11 +117,102 @@ export default function LandingPage() {
             Go to Dashboard
           </button>
         </div>
+
+        {/* Mobile Hamburger */}
+        <button
+          className="landing-mobile-btn"
+          onClick={() => setMenuOpen((v) => !v)}
+          style={{
+            background: 'none', border: '1px solid var(--border)',
+            color: 'var(--text-primary)', cursor: 'pointer',
+            width: 38, height: 38, borderRadius: 'var(--radius-sm)',
+            display: 'none', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? (
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          )}
+        </button>
       </nav>
+
+      {/* Mobile Dropdown Menu */}
+      {menuOpen && (
+        <div
+          ref={menuRef}
+          style={{
+            position: 'fixed',
+            top: 60, left: 0, right: 0,
+            zIndex: 199,
+            background: 'var(--bg-card)',
+            borderBottom: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-lg)',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div style={{ padding: '12px' }}>
+            {!isAuthenticated && (
+              <button
+                onClick={() => { setMenuOpen(false); navigate('/login') }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px', borderRadius: 'var(--radius-sm)',
+                  background: 'transparent', border: '1px solid var(--border-light)',
+                  color: 'var(--text-primary)', cursor: 'pointer',
+                  fontSize: 15, fontWeight: 500,
+                  fontFamily: 'var(--font-body)',
+                  marginBottom: 8, transition: 'all var(--transition)',
+                }}
+              >
+                <span>👤</span> Sign in
+              </button>
+            )}
+            <button
+              onClick={() => { setMenuOpen(false); navigate('/dashboard') }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px', borderRadius: 'var(--radius-sm)',
+                background: 'var(--accent)', border: 'none',
+                color: '#fff', cursor: 'pointer',
+                fontSize: 15, fontWeight: 600,
+                fontFamily: 'var(--font-body)',
+                marginBottom: isAuthenticated ? 8 : 0,
+                transition: 'all var(--transition)',
+              }}
+            >
+              <span>🗂️</span> Go to Dashboard
+            </button>
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px', borderRadius: 'var(--radius-sm)',
+                  background: 'var(--danger-dim)',
+                  border: '1px solid rgba(255,84,112,0.2)',
+                  color: 'var(--danger)', cursor: 'pointer',
+                  fontSize: 15, fontWeight: 500,
+                  fontFamily: 'var(--font-body)',
+                  transition: 'all var(--transition)',
+                }}
+              >
+                <span>🚪</span> Logout
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── HERO ── */}
       <section style={{
-        maxWidth: 860, margin: '0 auto', padding: '110px 24px 80px',
+        maxWidth: 860, margin: '0 auto', padding: '80px 24px 60px',
         textAlign: 'center', animation: 'fadeIn 0.6s ease forwards',
       }}>
         <div style={{
@@ -113,7 +225,7 @@ export default function LandingPage() {
         </div>
 
         <h1 style={{
-          fontFamily: 'var(--font-display)', fontSize: 'clamp(2.4rem, 6vw, 4rem)',
+          fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 6vw, 4rem)',
           fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 24,
         }}>
           Turn your documents into{' '}
@@ -143,13 +255,12 @@ export default function LandingPage() {
                 boxShadow: '0 0 40px rgba(108,99,255,0.35)', transition: 'var(--transition)',
                 cursor: 'pointer', letterSpacing: '-0.01em',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; e.currentTarget.style.transform = 'translateY(-2px)        ' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(0)' }}
             >
               Get Started — It's Free
             </button>
           )}
-        
           <button
             onClick={() => navigate('/dashboard')}
             style={{
@@ -176,7 +287,7 @@ export default function LandingPage() {
           }} />
 
           {/* Floating stat — top left */}
-          <div style={{
+          <div className="floating-stat" style={{
             position: 'absolute', top: -18, left: 0,
             background: 'var(--bg-card)', border: '1px solid var(--border-light)',
             borderRadius: 'var(--radius-md)', padding: '10px 16px',
@@ -192,7 +303,7 @@ export default function LandingPage() {
           </div>
 
           {/* Floating stat — top right */}
-          <div style={{
+          <div className="floating-stat" style={{
             position: 'absolute', top: -18, right: 0,
             background: 'var(--bg-card)', border: '1px solid var(--border-light)',
             borderRadius: 'var(--radius-md)', padding: '10px 16px',
@@ -405,7 +516,7 @@ export default function LandingPage() {
       {/* ── FOOTER ── */}
       <footer style={{
         borderTop: '1px solid var(--border)',
-        padding: '28px 48px',
+        padding: '28px 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: 12,
       }}>
@@ -417,12 +528,12 @@ export default function LandingPage() {
             Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
           </span>
         </div>
-      
+
         <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
           Made with <span style={{ color: 'var(--danger)' }}>♥</span> by{' '}
           <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Shovan</span>
         </p>
-      
+
         <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
           © {new Date().getFullYear()} InsightsHub · Your knowledge, amplified by AI.
         </p>
