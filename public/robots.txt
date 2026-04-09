@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /terms
+Allow: /privacy
+
+# Block protected/authenticated routes from being indexed
+Disallow: /dashboard
+Disallow: /spaces
+Disallow: /subscription
+
+Sitemap: https://insightshub.in/sitemap.xml

@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadUser } from './features/auth/authSlice'
 import LandingPage from './pages/LandingPage'
+import PrivacyPage from './pages/Privacypage'
+import TermsPage from './pages/Termspage'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import SpaceDetailPage from './pages/SpaceDetailPage'
@@ -36,6 +38,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/space/:spaceId" element={<SpaceDetailPage />} />

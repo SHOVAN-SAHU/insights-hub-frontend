@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { loginWithGoogle } from '../features/auth/authSlice'
 import { showToast } from '../components/common/Toast'
 import Toast from '../components/common/Toast'
@@ -124,8 +124,26 @@ export default function LoginPage() {
             )}
           </div>
 
+          {/* Legal notice with real links */}
           <p style={{ marginTop: 24, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            By continuing, you agree to our Terms of Service and Privacy Policy.
+            By continuing, you agree to our{' '}
+            <Link
+              to="/terms"
+              style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+              onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline' }}
+              onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}
+            >
+              Terms of Service
+            </Link>
+            {' '}and{' '}
+            <Link
+              to="/privacy"
+              style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+              onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline' }}
+              onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}
+            >
+              Privacy Policy
+            </Link>.
           </p>
         </div>
 

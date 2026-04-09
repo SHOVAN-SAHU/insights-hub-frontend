@@ -31,7 +31,8 @@ export default function LandingPage() {
   const dispatch = useDispatch()
   const { isAuthenticated } = useSelector((s) => s.auth)
   const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
+  // ref covers both the button AND the dropdown so outside-click never fights the toggle
+  const navRef = useRef(null)
 
   const handleLogout = async () => {
     setMenuOpen(false)
@@ -39,10 +40,10 @@ export default function LandingPage() {
     navigate('/')
   }
 
-  // Close menu on outside click
+  // Close menu on outside click — checks the whole nav wrapper
   useEffect(() => {
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      if (navRef.current && !navRef.current.contains(e.target)) {
         setMenuOpen(false)
       }
     }
@@ -54,161 +55,199 @@ export default function LandingPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', overflowX: 'hidden' }}>
 
       {/* ── NAV ── */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', height: 60,
-        borderBottom: '1px solid var(--border)',
-        position: 'sticky', top: 0, zIndex: 200,
-        background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(12px)',
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, flexShrink: 0 }}>
-            <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 34, height: 34 }} />
+      {/* navRef wraps both the <nav> bar and the dropdown so clicks inside either don't trigger outside-click */}
+      <div ref={navRef}>
+        <nav style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px', height: 60,
+          borderBottom: '1px solid var(--border)',
+          position: 'sticky', top: 0, zIndex: 200,
+          background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(12px)',
+        }}>
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 34, height: 34, flexShrink: 0 }}>
+              <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 34, height: 34 }} />
+            </div>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18 }}>
+              Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
+            </span>
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18 }}>
-            Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
-          </span>
-        </div>
 
-        {/* Desktop buttons */}
-        <div className="landing-desktop-nav" style={{ display: 'flex', gap: 12 }}>
-          {isAuthenticated ? (
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '8px 20px', borderRadius: 'var(--radius-md)',
-                background: 'transparent', border: '1px solid var(--danger)',
-                color: 'var(--danger)', fontSize: 14, transition: 'var(--transition)',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-dim)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-            >
-              Logout
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/login')}
-              style={{
-                padding: '8px 20px', borderRadius: 'var(--radius-md)',
-                background: 'transparent', border: '1px solid var(--border-light)',
-                color: 'var(--text-primary)', fontSize: 14, transition: 'var(--transition)',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-primary)' }}
-            >
-              Sign in
-            </button>
-          )}
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              padding: '8px 20px', borderRadius: 'var(--radius-md)',
-              background: 'var(--accent)', border: 'none',
-              color: '#fff', fontSize: 14, fontWeight: 600,
-              boxShadow: 'var(--shadow-accent)', transition: 'var(--transition)',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)' }}
-          >
-            Go to Dashboard
-          </button>
-        </div>
-
-        {/* Mobile Hamburger */}
-        <button
-          className="landing-mobile-btn"
-          onClick={() => setMenuOpen((v) => !v)}
-          style={{
-            background: 'none', border: '1px solid var(--border)',
-            color: 'var(--text-primary)', cursor: 'pointer',
-            width: 38, height: 38, borderRadius: 'var(--radius-sm)',
-            display: 'none', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? (
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          )}
-        </button>
-      </nav>
-
-      {/* Mobile Dropdown Menu */}
-      {menuOpen && (
-        <div
-          ref={menuRef}
-          style={{
-            position: 'fixed',
-            top: 60, left: 0, right: 0,
-            zIndex: 199,
-            background: 'var(--bg-card)',
-            borderBottom: '1px solid var(--border)',
-            boxShadow: 'var(--shadow-lg)',
-            animation: 'fadeIn 0.2s ease',
-          }}
-        >
-          <div style={{ padding: '12px' }}>
-            {!isAuthenticated && (
+          {/* Desktop buttons */}
+          <div className="landing-desktop-nav" style={{ display: 'flex', gap: 12 }}>
+            {isAuthenticated ? (
               <button
-                onClick={() => { setMenuOpen(false); navigate('/login') }}
+                onClick={handleLogout}
+                style={{
+                  padding: '8px 20px', borderRadius: 'var(--radius-md)',
+                  background: 'transparent', border: '1px solid var(--danger)',
+                  color: 'var(--danger)', fontSize: 14, transition: 'var(--transition)',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-dim)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                style={{
+                  padding: '8px 20px', borderRadius: 'var(--radius-md)',
+                  background: 'transparent', border: '1px solid var(--border-light)',
+                  color: 'var(--text-primary)', fontSize: 14, transition: 'var(--transition)',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-primary)' }}
+              >
+                Sign in
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/dashboard')}
+              style={{
+                padding: '8px 20px', borderRadius: 'var(--radius-md)',
+                background: 'var(--accent)', border: 'none',
+                color: '#fff', fontSize: 14, fontWeight: 600,
+                boxShadow: 'var(--shadow-accent)', transition: 'var(--transition)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)' }}
+            >
+              Go to Dashboard
+            </button>
+          </div>
+
+          {/* Mobile Hamburger */}
+          <button
+            className="landing-mobile-btn"
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{
+              background: 'none', border: '1px solid var(--border)',
+              color: 'var(--text-primary)', cursor: 'pointer',
+              width: 38, height: 38, borderRadius: 'var(--radius-sm)',
+              display: 'none', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            )}
+          </button>
+        </nav>
+
+        {/* Mobile Dropdown Menu */}
+        {menuOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 60, left: 0, right: 0,
+              zIndex: 199,
+              background: 'var(--bg-card)',
+              borderBottom: '1px solid var(--border)',
+              boxShadow: 'var(--shadow-lg)',
+              animation: 'fadeIn 0.2s ease',
+            }}
+          >
+            <div style={{ padding: '12px' }}>
+              {!isAuthenticated && (
+                <button
+                  onClick={() => { setMenuOpen(false); navigate('/login') }}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px', borderRadius: 'var(--radius-sm)',
+                    background: 'transparent', border: '1px solid var(--border-light)',
+                    color: 'var(--text-primary)', cursor: 'pointer',
+                    fontSize: 15, fontWeight: 500,
+                    fontFamily: 'var(--font-body)',
+                    marginBottom: 8, transition: 'all var(--transition)',
+                  }}
+                >
+                  <span>👤</span> Sign in
+                </button>
+              )}
+              <button
+                onClick={() => { setMenuOpen(false); navigate('/dashboard') }}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12,
                   padding: '12px', borderRadius: 'var(--radius-sm)',
-                  background: 'transparent', border: '1px solid var(--border-light)',
-                  color: 'var(--text-primary)', cursor: 'pointer',
-                  fontSize: 15, fontWeight: 500,
+                  background: 'var(--accent)', border: 'none',
+                  color: '#fff', cursor: 'pointer',
+                  fontSize: 15, fontWeight: 600,
                   fontFamily: 'var(--font-body)',
                   marginBottom: 8, transition: 'all var(--transition)',
                 }}
               >
-                <span>👤</span> Sign in
+                <span>🗂️</span> Go to Dashboard
               </button>
-            )}
-            <button
-              onClick={() => { setMenuOpen(false); navigate('/dashboard') }}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px', borderRadius: 'var(--radius-sm)',
-                background: 'var(--accent)', border: 'none',
-                color: '#fff', cursor: 'pointer',
-                fontSize: 15, fontWeight: 600,
-                fontFamily: 'var(--font-body)',
-                marginBottom: isAuthenticated ? 8 : 0,
-                transition: 'all var(--transition)',
-              }}
-            >
-              <span>🗂️</span> Go to Dashboard
-            </button>
-            {isAuthenticated && (
-              <button
-                onClick={handleLogout}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '12px', borderRadius: 'var(--radius-sm)',
-                  background: 'var(--danger-dim)',
-                  border: '1px solid rgba(255,84,112,0.2)',
-                  color: 'var(--danger)', cursor: 'pointer',
-                  fontSize: 15, fontWeight: 500,
-                  fontFamily: 'var(--font-body)',
-                  transition: 'all var(--transition)',
-                }}
-              >
-                <span>🚪</span> Logout
-              </button>
-            )}
+              {isAuthenticated && (
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px', borderRadius: 'var(--radius-sm)',
+                    background: 'var(--danger-dim)',
+                    border: '1px solid rgba(255,84,112,0.2)',
+                    color: 'var(--danger)', cursor: 'pointer',
+                    fontSize: 15, fontWeight: 500,
+                    fontFamily: 'var(--font-body)',
+                    marginBottom: 8, transition: 'all var(--transition)',
+                  }}
+                >
+                  <span>🚪</span> Logout
+                </button>
+              )}
+              {/* Legal links in mobile menu */}
+              <div style={{
+                borderTop: '1px solid var(--border)',
+                paddingTop: 10, marginTop: 4,
+                display: 'flex', gap: 8,
+              }}>
+                <button
+                  onClick={() => { setMenuOpen(false); navigate('/terms') }}
+                  style={{
+                    flex: 1, padding: '9px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'transparent', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', cursor: 'pointer',
+                    fontSize: 13, fontFamily: 'var(--font-body)',
+                    transition: 'all var(--transition)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)' }}
+                >
+                  📋 Terms
+                </button>
+                <button
+                  onClick={() => { setMenuOpen(false); navigate('/privacy') }}
+                  style={{
+                    flex: 1, padding: '9px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'transparent', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', cursor: 'pointer',
+                    fontSize: 13, fontFamily: 'var(--font-body)',
+                    transition: 'all var(--transition)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)' }}
+                >
+                  🔒 Privacy
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── HERO ── */}
       <section style={{
@@ -517,26 +556,54 @@ export default function LandingPage() {
       <footer style={{
         borderTop: '1px solid var(--border)',
         padding: '28px 24px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: 12,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 28, height: 28 }}>
-            <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 28, height: 28 }} />
+        {/* Top row */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexWrap: 'wrap', gap: 12, marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 28, height: 28 }}>
+              <img src="/favicon.svg" alt="InsightsHub logo" style={{ width: 28, height: 28 }} />
+            </div>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15 }}>
+              Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
+            </span>
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15 }}>
-            Insights<span style={{ color: 'var(--accent)' }}>Hub</span>
-          </span>
+
+          {/* Legal links */}
+          <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+            <span
+              onClick={() => navigate('/terms')}
+              style={{ fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', transition: 'color var(--transition)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
+            >
+              Terms & Conditions
+            </span>
+            <span style={{ color: 'var(--border)', fontSize: 13 }}>·</span>
+            <span
+              onClick={() => navigate('/privacy')}
+              style={{ fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', transition: 'color var(--transition)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
+            >
+              Privacy Policy
+            </span>
+          </div>
+
+          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            Made with <span style={{ color: 'var(--danger)' }}>♥</span> by{' '}
+            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Shovan</span>
+          </p>
         </div>
 
-        <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          Made with <span style={{ color: 'var(--danger)' }}>♥</span> by{' '}
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Shovan</span>
-        </p>
-
-        <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-          © {new Date().getFullYear()} InsightsHub · Your knowledge, amplified by AI.
-        </p>
+        {/* Bottom row */}
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center' }}>
+            © {new Date().getFullYear()} InsightsHub · Your knowledge, amplified by AI.
+          </p>
+        </div>
       </footer>
 
     </div>

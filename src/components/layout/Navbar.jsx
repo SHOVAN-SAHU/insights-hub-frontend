@@ -10,7 +10,9 @@ export default function Navbar() {
   const location = useLocation()
   const { user } = useSelector((s) => s.auth)
   const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
+  // navRef wraps BOTH the sticky bar and the dropdown —
+  // this way the outside-click handler never races with the toggle button
+  const navRef = useRef(null)
 
   const handleLogout = async () => {
     setMenuOpen(false)
@@ -20,15 +22,15 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/dashboard', label: 'Spaces' },
-    { to: '/subscription', label: 'Plans' },
+    { to: '/', label: 'Home', icon: '🏠' },
+    { to: '/dashboard', label: 'Spaces', icon: '🗂️' },
+    { to: '/subscription', label: 'Plans', icon: '💎' },
   ]
 
-  // Close menu on outside click
+  // Close menu on outside click — scoped to the whole nav wrapper
   useEffect(() => {
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      if (navRef.current && !navRef.current.contains(e.target)) {
         setMenuOpen(false)
       }
     }
@@ -40,7 +42,8 @@ export default function Navbar() {
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
 
   return (
-    <>
+    // navRef on this wrapper div — covers both <nav> and the fixed dropdown
+    <div ref={navRef}>
       <nav style={{
         background: 'rgba(17,17,24,0.85)',
         borderBottom: '1px solid var(--border)',
@@ -88,7 +91,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Nav Links — hidden on mobile */}
+        {/* Desktop Nav Links */}
         <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {navLinks.map((link) => {
             const active = location.pathname === link.to
@@ -109,7 +112,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Desktop User Info — hidden on mobile */}
+        {/* Desktop User Info */}
         <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {user?.picture ? (
             <img src={user.picture} alt={user.name} style={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid var(--border)' }} />
@@ -172,7 +175,6 @@ export default function Navbar() {
       {/* Mobile Dropdown Menu */}
       {menuOpen && (
         <div
-          ref={menuRef}
           style={{
             position: 'fixed',
             top: 60,
@@ -234,7 +236,7 @@ export default function Navbar() {
                     marginBottom: 2,
                   }}
                 >
-                  <span>{link.to === '/' ? '🏠' : link.to === '/dashboard' ? '🗂️' : '💎'}</span>
+                  <span>{link.icon}</span>
                   {link.label}
                 </Link>
               )
@@ -242,7 +244,7 @@ export default function Navbar() {
           </div>
 
           {/* Logout */}
-          <div style={{ padding: '8px 12px 16px' }}>
+          <div style={{ padding: '0 12px 8px' }}>
             <button
               onClick={handleLogout}
               style={{
@@ -260,8 +262,44 @@ export default function Navbar() {
               <span>🚪</span> Logout
             </button>
           </div>
+
+          {/* Legal links */}
+          <div style={{
+            borderTop: '1px solid var(--border)',
+            padding: '10px 12px 14px',
+            display: 'flex', gap: 8,
+          }}>
+            <Link
+              to="/terms"
+              style={{
+                flex: 1, padding: '9px 12px', textAlign: 'center',
+                borderRadius: 'var(--radius-sm)',
+                background: 'transparent', border: '1px solid var(--border)',
+                color: 'var(--text-muted)', fontSize: 13,
+                textDecoration: 'none', transition: 'all var(--transition)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)' }}
+            >
+              📋 Terms
+            </Link>
+            <Link
+              to="/privacy"
+              style={{
+                flex: 1, padding: '9px 12px', textAlign: 'center',
+                borderRadius: 'var(--radius-sm)',
+                background: 'transparent', border: '1px solid var(--border)',
+                color: 'var(--text-muted)', fontSize: 13,
+                textDecoration: 'none', transition: 'all var(--transition)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)' }}
+            >
+              🔒 Privacy
+            </Link>
+          </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
